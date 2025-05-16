@@ -22,7 +22,7 @@ export class User extends EntityModel {
   email: string;
 
   @Column()
-  password_hash: string;
+  password: string;
 
   @Column()
   first_name: string;
