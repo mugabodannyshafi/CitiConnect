@@ -1,0 +1,60 @@
+name: Run Tests On Pull Request
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - development
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: citi_connect
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -ppassword" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Copy Environment Variables
+        run: cp .env.testing.example .env.testing
+
+      - name: Set NODE_ENV
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
+
+      - name: Create Additional Databases
+        run: |
+          mysql -h 127.0.0.1 -uroot -ppassword -e "CREATE DATABASE IF NOT EXISTS citi_connect;"
+          mysql -h127.0.0.1 -P3306 -uroot -ppassword -e "GRANT ALL PRIVILEGES ON citi_connect.* TO 'user'@'%';"
+          mysql -h127.0.0.1 -P3306 -uroot -ppassword -e "FLUSH PRIVILEGES;"
+
+      - name: Run Tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+        run: |
+          npm run test
