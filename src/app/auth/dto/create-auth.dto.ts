@@ -4,11 +4,11 @@ import { UserRole } from 'src/enums/user-role.enum';
 import { IsPhone } from 'src/validators/is-phone.validator';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'user@example.com', description: 'User email address' })
+  @ApiProperty({ example: 'johndoe@gmail.com', description: 'User email address' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'hashed_password123', description: 'Password hash' })
+  @ApiProperty({ example: 'password', description: 'Password hash' })
   @IsString()
   password: string;
 
@@ -30,12 +30,4 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   address?: string;
-
-  @ApiProperty({
-    enum: UserRole,
-    default: UserRole.CITIZEN,
-    description: 'Role of the user',
-  })
-  @IsString()
-  role?: UserRole;
 }
